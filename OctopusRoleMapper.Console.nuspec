@@ -1,0 +1,17 @@
+﻿<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>OctopusProjectBuilder.Console</id>
+    <version>$version$</version>
+    <title>OctopusProjectBuilder.Console</title>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <summary>OctopusEnvironmentBuilder.Console</summary>
+    <authors>Wonga</authors>
+    <description>Console application allowing to configure Octopus resources from YAML files.</description>
+    <language>en-US</language>
+  </metadata>
+  <files>
+    <file src="OctopusRoleMapper.Console\bin\Release\*.dll" target="." />
+    <file src="OctopusRoleMapper.Console\bin\Release\*.exe" target="." />
+  </files>
+</package>

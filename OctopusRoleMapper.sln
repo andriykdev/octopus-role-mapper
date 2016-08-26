@@ -1,0 +1,41 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 14
+VisualStudioVersion = 14.0.24720.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OctopusRoleMapper.Console", "OctopusRoleMapper.Console\OctopusRoleMapper.Console.csproj", "{6D0D9780-1680-4B12-A508-171B4B20D13A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OctopusRoleMapper.Tests", "OctopusRoleMapper.Tests\OctopusRoleMapper.Tests.csproj", "{B77C46E2-BC57-4647-B2CA-2EB7878B3075}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{F0063154-0A0B-43E9-9763-02BB4118B3C7}"
+	ProjectSection(SolutionItems) = preProject
+		AssemblyVersion.cs = AssemblyVersion.cs
+		current_version = current_version
+		OctopusRoleMapper.Console.nuspec = OctopusRoleMapper.Console.nuspec
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OctopusRoleMapper", "OctopusRoleMapper\OctopusRoleMapper.csproj", "{6D2C0ECF-C4DE-4478-95BC-8849626CEAF6}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{6D0D9780-1680-4B12-A508-171B4B20D13A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6D0D9780-1680-4B12-A508-171B4B20D13A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6D0D9780-1680-4B12-A508-171B4B20D13A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6D0D9780-1680-4B12-A508-171B4B20D13A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B77C46E2-BC57-4647-B2CA-2EB7878B3075}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B77C46E2-BC57-4647-B2CA-2EB7878B3075}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B77C46E2-BC57-4647-B2CA-2EB7878B3075}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B77C46E2-BC57-4647-B2CA-2EB7878B3075}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6D2C0ECF-C4DE-4478-95BC-8849626CEAF6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6D2C0ECF-C4DE-4478-95BC-8849626CEAF6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6D2C0ECF-C4DE-4478-95BC-8849626CEAF6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6D2C0ECF-C4DE-4478-95BC-8849626CEAF6}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

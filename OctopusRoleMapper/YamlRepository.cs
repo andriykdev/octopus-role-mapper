@@ -32,6 +32,7 @@ namespace OctopusRoleMapper
 
         public RoleModel Load(string modelDirectory)
         {
+            Logger.Info($"Loading roles from {modelDirectory}");
             var files = FindFiles(modelDirectory);
             return new RoleModel(files.SelectMany(LoadModels).Select(m => m.ToModel()));
         }

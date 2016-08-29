@@ -47,6 +47,21 @@ namespace OctopusRoleMapper.Tests
         }
 
         [Test]
+        public void Uploader_should_not_be_case_sensitive()
+        {
+            var caseSensitiveModel = new RoleModel(new[]
+            {
+                new Role("api", new List<string> {"DEV1", "Dev2"}),
+                new Role("csapi", new List<string> {"dev1", "dev2"}),
+                new Role("service", new List<string> {"dev3"})
+            });
+
+            _uploader.UploadModel(caseSensitiveModel);
+            var actual = _downloader.DownloadModel();
+            actual.AssertDeepEqualsTo(_model);
+        }
+
+        [Test]
         public void It_should_download_model()
         {
             var actual = _downloader.DownloadModel();
@@ -107,7 +122,7 @@ namespace OctopusRoleMapper.Tests
 
             var ex = Assert.Throws<InvalidOperationException>(() => _uploader.UploadModel(_model));
 
-            Assert.That(ex.Message, Is.EqualTo($"Machine {missingMachine} is missing on Octopus"));
+            Assert.That(ex.Message, Is.EqualTo("Local mappped machine(s) are missing on Octopus"));
         }
 
         [Test]

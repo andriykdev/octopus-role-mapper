@@ -12,7 +12,7 @@ namespace OctopusRoleMapper
         public Role(string name, IEnumerable<string> machines )
         {
             Name = name;
-            Machines = machines.OrderBy(x => x).ToArray();
+            Machines = machines?.OrderBy(x => x).ToArray() ?? new string[] {} ;
         }
 
         public override string ToString()

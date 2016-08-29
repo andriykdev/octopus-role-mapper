@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using Octopus.Client;
 
 namespace OctopusRoleMapper
@@ -21,7 +22,7 @@ namespace OctopusRoleMapper
             var machines = _repository.Machines.FindAll();
             var roles = _repository.MachineRoles.GetAllRoleNames();
 
-            return new RoleModel(roles.Select(role => new Role(role, machines.Where(x => x.Roles.Contains(role)).Select(x => x.Name))));
+            return new RoleModel(roles.Select(role => new Role(role, machines.Where(x => x.Roles.Contains(role, StringComparer.CurrentCultureIgnoreCase)).Select(x => x.Name))));
         }
     }
 }

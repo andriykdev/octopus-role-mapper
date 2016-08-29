@@ -39,6 +39,21 @@ Machines:
             model.AssertDeepEqualsTo(expected);
         }
 
+        [Test]
+        public void It_Should_Read_Role_With_No_Mapped_Machines()
+        {
+            var content = @"---
+Name: api
+Machines:
+...
+";
+
+            var model = Read(content);
+            Assert.That(model.Name.Equals("api"));
+            Assert.IsNull(model.Machines);
+
+        }
+
         private YamlRole Read(string content)
         {
             return _reader.Read(new MemoryStream(Encoding.UTF8.GetBytes(content), false)).Single();

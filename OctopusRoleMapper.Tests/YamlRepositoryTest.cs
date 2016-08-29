@@ -40,5 +40,23 @@ namespace OctopusRoleMapper.Tests
 
             actual.AssertDeepEqualsTo(expected);
         }
+
+        [Test] public void Repository_should_load_roles_with_no_mapped_machines()
+        {
+            var model = new RoleModel(new[]
+            {
+                new Role("api", new [] {"dev1", "dev2"}),
+                new Role("csapi", new string[] {}),
+                new Role("service", null)
+            });
+
+            var repository = new YamlRepository();
+
+            repository.Save(model, _directory);
+
+            var actual = repository.Load(_directory);
+
+            actual.AssertDeepEqualsTo(model);
+        }
     }
 }

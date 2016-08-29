@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Common.Logging;
 using Octopus.Client;
+using Octopus.Client.Model;
 
 namespace OctopusRoleMapper
 {
@@ -10,6 +11,7 @@ namespace OctopusRoleMapper
     {
         private static readonly ILog Logger = LogManager.GetLogger<Uploader>();
         private readonly IOctopusRepository _repository;
+        private readonly IEqualityComparer<string> _comparer = StringComparer.InvariantCultureIgnoreCase;
 
         public Uploader(string octopusUrl, string octopusApiKey) : this(new OctopusRepository(new OctopusClient(new OctopusServerEndpoint(octopusUrl, octopusApiKey))))
         {
@@ -31,45 +33,62 @@ namespace OctopusRoleMapper
 
             var machines = _repository.Machines.FindAll();
 
-            CheckMachinesExistence(machines.Select(x => x.Name).ToList(), model.Roles.SelectMany(x => x.Machines).Distinct().ToList());
+            CheckMachinesExistence(machines.Select(x => x.Name).ToList(), model.Roles.SelectMany(x => x.Machines).Distinct(_comparer).ToList());
+
+            Logger.Info("\n\tUploading roles");
 
             foreach (var machineResource in machines)
             {
-                var unknownRoles = machineResource.Roles.Except(knownRoles).ToList();
-                var rolesForMachine = model.Roles
-                    .Where(x => x.Machines.Contains(machineResource.Name))
-                    .Select(x => x.Name)
-                    .ToList()
-                    .Concat(unknownRoles)
-                    .ToList();
-
-                machineResource.Roles.Clear();
-
-                Logger.Info($"Updating {machineResource.Name} with roles:");
-
-                foreach (var role in rolesForMachine)
-                {
-                    Logger.Info($"- {role}");
-                    machineResource.Roles.Add(role);
-                }
-
-                if (machineResource.Roles.Count == 0)
-                {
-                    throw new InvalidOperationException($"Machine {machineResource.Name} has no roles");
-                }
-
-                _repository.Machines.Modify(machineResource);
+                UploadRoleMappingForMachine(machineResource, model.Roles, knownRoles);
             }
         }
 
-        private void CheckMachinesExistence(List<string> remoteMachines, List<string> localMachines)
+        private void UploadRoleMappingForMachine(MachineResource machineResource, IEnumerable<Role> roles, IEnumerable<string> knownRoles)
         {
-            foreach (var localMachine in localMachines)
+            var unknownRoles = machineResource.Roles.Except(knownRoles, _comparer).ToList();
+            var rolesForMachine = roles
+                .Where(x => x.Machines.Contains(machineResource.Name, _comparer))
+                .Select(x => x.Name)
+                .Concat(unknownRoles)
+                .ToList();
+
+            if (rolesForMachine.Count == 0)
             {
-                if (!remoteMachines.Contains(localMachine))
+                throw new InvalidOperationException($"Machine {machineResource.Name} has no roles");
+            }
+
+            Logger.Info($"Updating {machineResource.Name} with roles:");
+            OutputMappingChanges(machineResource.Roles.ToList(), rolesForMachine, unknownRoles);
+
+            machineResource.Roles = new ReferenceCollection(rolesForMachine);
+            _repository.Machines.Modify(machineResource);
+        }
+
+        private void OutputMappingChanges(List<string> oldRoles, List<string> newRoles, List<string> notMappedRoles)
+        {
+            foreach (var newRole in newRoles)
+            {
+                Logger.Info($"- {newRole} {(oldRoles.Contains(newRole, _comparer) ? $"untouched {(notMappedRoles.Contains(newRole, _comparer) ? "(not mapped)" : string.Empty)}" : "added")}");
+            }
+
+            foreach (var oldRole in oldRoles.Where(oldRole => !newRoles.Contains(oldRole, _comparer)))
+            {
+                Logger.Info($"- {oldRole} deleted");
+            }
+        }
+
+        private void CheckMachinesExistence(IEnumerable<string> remoteMachines, IEnumerable<string> localMachines)
+        {
+            var missedMachines = localMachines.Except(remoteMachines, _comparer).ToList();
+
+            if (missedMachines.Any())
+            {
+                foreach (var missedMachine in missedMachines)
                 {
-                    throw new InvalidOperationException($"Machine {localMachine} is missing on Octopus");
+                    Logger.ErrorFormat($"Machine {missedMachine} is missing on Octopus");
                 }
+
+                throw new InvalidOperationException("Local mappped machine(s) are missing on Octopus");
             }
         }
     }

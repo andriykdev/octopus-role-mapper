@@ -1,11 +1,11 @@
 ﻿<?xml version="1.0"?>
 <package >
   <metadata>
-    <id>OctopusProjectBuilder.Console</id>
+    <id>OctopusRoleMapper.Console</id>
     <version>$version$</version>
-    <title>OctopusProjectBuilder.Console</title>
+    <title>OctopusRoleMapper.Console</title>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
-    <summary>OctopusEnvironmentBuilder.Console</summary>
+    <summary>OctopusRoleMapper.Console</summary>
     <authors>Wonga</authors>
     <description>Console application allowing to configure Octopus resources from YAML files.</description>
     <language>en-US</language>

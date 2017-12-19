@@ -4,6 +4,7 @@ using System.Linq;
 using Common.Logging;
 using Octopus.Client;
 using Octopus.Client.Model;
+using OctopusRoleMapper.Model;
 
 namespace OctopusRoleMapper
 {
@@ -27,22 +28,87 @@ namespace OctopusRoleMapper
         // If machine has known(we have definition for it in repository) role, 
         // but in repo it doesn't point to this particular machine - it will be removed.
         // However we do not touch unknown roles (roles we are not aware of eg: they are not defined in a repository)
-        public void UploadModel(RoleModel model)
+        // for tenants and tags logic is the same
+        public void UploadModel(SystemModel model)
         {
             var knownRoles = model.Roles.Select(x => x.Name).ToList();
+            var knownTenants = model.Tenants.Select(x => x.Name).ToList();
+            var knownTags = model.TenantTags.Select(x => x.Name).ToList();
 
             var machines = _repository.Machines.FindAll();
 
             CheckMachinesExistence(machines.Select(x => x.Name).ToList(), model.Roles.SelectMany(x => x.Machines).Distinct(_comparer).ToList());
-
             Logger.Info("\n\tUploading roles");
 
             foreach (var machineResource in machines)
             {
                 UploadRoleMappingForMachine(machineResource, model.Roles, knownRoles);
             }
+
+            CheckMachinesExistence(machines.Select(x => x.Name).ToList(), model.Tenants.SelectMany(x => x.Machines).Distinct(_comparer).ToList());
+            Logger.Info("\n\tUploading tenants");
+
+            foreach (var machineResource in machines)
+            {
+                UploadTenantMappingForMachine(machineResource, model.Tenants, knownTenants);
+            }
+
+            CheckMachinesExistence(machines.Select(x => x.Name).ToList(), model.TenantTags.SelectMany(x => x.Machines).Distinct(_comparer).ToList());
+            Logger.Info("\n\tUploading tags");
+
+            foreach (var machineResource in machines)
+            {
+                UploadTenantTagsMappingForMachine(machineResource, model.TenantTags, knownTags);
+            }
         }
 
+        private void UploadTenantMappingForMachine(MachineResource machineResource, IEnumerable<Tenant> tenants, List<string> knownTenants)
+        {
+            var knownTenantIds = GetTenantIdsByNames(knownTenants);
+            var unknownTenantIds = machineResource.TenantIds.Except(knownTenantIds, _comparer).ToList();
+
+            var tenantsForMachine = tenants
+                .Where(x => x.Machines.Contains(machineResource.Name, _comparer))
+                .Select(x => x.Name)
+                .ToList();
+
+            var tenantIds = GetTenantIdsByNames(tenantsForMachine)
+                .Concat(unknownTenantIds)
+                .ToList();
+
+            if (tenantIds.Count == 0)
+            {
+                return;
+            }
+
+            Logger.Info($"Updating {machineResource.Name} with tenants:");
+            OutputMappingChanges(GetTenantNamesByIds(machineResource.TenantIds.ToList()), GetTenantNamesByIds(tenantIds), GetTenantNamesByIds(unknownTenantIds));
+
+            machineResource.TenantIds = new ReferenceCollection(tenantIds);
+            _repository.Machines.Modify(machineResource);
+        }
+
+        private void UploadTenantTagsMappingForMachine(MachineResource machineResource, IEnumerable<TenantTag> tenantTags, List<string> knownTags)
+        {
+            var unknownTags = machineResource.TenantTags.Except(knownTags, _comparer).ToList();
+            var tagsForMachine = tenantTags
+                .Where(x => x.Machines.Contains(machineResource.Name, _comparer))
+                .Select(x => x.Name)
+                .Concat(unknownTags)
+                .ToList();
+
+            if (tagsForMachine.Count == 0)
+            {
+                return;
+            }
+
+            Logger.Info($"Updating {machineResource.Name} with TenantTags:");
+            OutputMappingChanges(machineResource.TenantTags.ToList(), tagsForMachine, unknownTags);
+
+            machineResource.TenantTags = new ReferenceCollection(tagsForMachine);
+            _repository.Machines.Modify(machineResource);
+        }
+       
         private void UploadRoleMappingForMachine(MachineResource machineResource, IEnumerable<Role> roles, IEnumerable<string> knownRoles)
         {
             var unknownRoles = machineResource.Roles.Except(knownRoles, _comparer).ToList();
@@ -64,17 +130,27 @@ namespace OctopusRoleMapper
             _repository.Machines.Modify(machineResource);
         }
 
-        private void OutputMappingChanges(List<string> oldRoles, List<string> newRoles, List<string> notMappedRoles)
+        private void OutputMappingChanges(IEnumerable<string> oldItems, IEnumerable<string> newItems, IEnumerable<string> notMappedItems)
         {
-            foreach (var newRole in newRoles)
+            foreach (var newItem in newItems)
             {
-                Logger.Info($"- {newRole} {(oldRoles.Contains(newRole, _comparer) ? $"untouched {(notMappedRoles.Contains(newRole, _comparer) ? "(not mapped)" : string.Empty)}" : "added")}");
+                Logger.Info($"- {newItem} {(oldItems.Contains(newItem, _comparer) ? $"untouched {(notMappedItems.Contains(newItem, _comparer) ? "(not mapped)" : string.Empty)}" : "added")}");
             }
 
-            foreach (var oldRole in oldRoles.Where(oldRole => !newRoles.Contains(oldRole, _comparer)))
+            foreach (var oldItem in oldItems.Where(value => !newItems.Contains(value, _comparer)))
             {
-                Logger.Info($"- {oldRole} deleted");
+                Logger.Info($"- {oldItem} deleted");
             }
+        }
+
+        private IEnumerable<string> GetTenantIdsByNames(IEnumerable<string> tenantsNames)
+        {
+            return _repository.Tenants.FindAll().Where(x => tenantsNames.Contains(x.Name, _comparer)).Select(x => x.Id).ToList();
+        }
+
+        private IEnumerable<string> GetTenantNamesByIds(IEnumerable<string> ids)
+        {
+            return _repository.Tenants.FindAll().Where(x => ids.Contains(x.Id, _comparer)).Select(x => x.Name).ToList();
         }
 
         private void CheckMachinesExistence(IEnumerable<string> remoteMachines, IEnumerable<string> localMachines)

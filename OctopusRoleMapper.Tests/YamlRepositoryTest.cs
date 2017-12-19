@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using NUnit.Framework;
+using OctopusRoleMapper.Model;
 using OctopusRoleMapper.Tests.Helpers;
 using Ploeh.AutoFixture;
 
@@ -32,7 +33,7 @@ namespace OctopusRoleMapper.Tests
         {
             var repository = new YamlRepository();
 
-            var expected = _fixture.Create<RoleModel>();
+            var expected = _fixture.Create<SystemModel>();
 
             repository.Save(expected, _directory);
 
@@ -43,11 +44,17 @@ namespace OctopusRoleMapper.Tests
 
         [Test] public void Repository_should_load_roles_with_no_mapped_machines()
         {
-            var model = new RoleModel(new[]
+            var model = new SystemModel(new[]
             {
                 new Role("api", new [] {"dev1", "dev2"}),
                 new Role("csapi", new string[] {}),
                 new Role("service", null)
+            }, new[]
+            {
+                new Tenant("a", new []{ "dev1"}),
+            }, new[]
+            {
+                new TenantTag("a", new [] { "dev1"})
             });
 
             var repository = new YamlRepository();

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
 using Octopus.Client.Model;
+using OctopusRoleMapper.Model;
 using OctopusRoleMapper.Tests.Helpers;
 
 namespace OctopusRoleMapper.Tests
@@ -13,7 +14,7 @@ namespace OctopusRoleMapper.Tests
         private Downloader _downloader;
         private FakeOctopusRepository _repository;
         private Uploader _uploader;
-        private RoleModel _model;
+        private SystemModel _model;
 
         [SetUp]
         public void SetUp()
@@ -22,11 +23,15 @@ namespace OctopusRoleMapper.Tests
             _downloader = new Downloader(_repository);
             _uploader = new Uploader(_repository);
 
-            _model = new RoleModel(new[]
+            _model = new SystemModel(new[]
             {
                 new Role("api", new List<string> {"dev1", "dev2"}),
                 new Role("csapi", new List<string> {"dev1", "dev2"}),
                 new Role("service", new List<string> {"dev3"})
+            }, new Tenant[]
+            {
+            }, new TenantTag[]
+            {
             });
 
             foreach (var role in _model.Roles)
@@ -34,7 +39,9 @@ namespace OctopusRoleMapper.Tests
                 _repository.FakeMachineRoles.Add(role.Name);
             }
 
-            foreach (var machineName in _model.Roles.SelectMany(x => x.Machines).Distinct())
+            foreach (var machineName in _model.Roles.SelectMany(x => x.Machines)
+                .Concat(_model.Tenants.SelectMany(x => x.Machines))
+                .Concat(_model.TenantTags.SelectMany(x => x.Machines)).Distinct())
             {
                 var machine = new MachineResource { Name = machineName };
 
@@ -49,11 +56,17 @@ namespace OctopusRoleMapper.Tests
         [Test]
         public void Uploader_should_not_be_case_sensitive()
         {
-            var caseSensitiveModel = new RoleModel(new[]
+            var caseSensitiveModel = new SystemModel(new[]
             {
                 new Role("api", new List<string> {"DEV1", "Dev2"}),
                 new Role("csapi", new List<string> {"dev1", "dev2"}),
                 new Role("service", new List<string> {"dev3"})
+            }, new[]
+            {
+                new Tenant("a", new List<string> { "dev1"}),
+            }, new[]
+            {
+                new TenantTag("a", new List<string> { "dev1"})
             });
 
             _uploader.UploadModel(caseSensitiveModel);
@@ -101,9 +114,15 @@ namespace OctopusRoleMapper.Tests
         [Test]
         public void It_should_move_known_role()
         {
-            _model = new RoleModel(new[]
+            _model = new SystemModel(new[]
             {
                 new Role("api", new List<string> {"dev3", "dev2"}),
+            }, new[]
+            {
+                new Tenant("a", new List<string> { "dev1"}),
+            }, new[]
+            {
+                new TenantTag("a", new List<string> { "dev1"})
             });
 
             _uploader.UploadModel(_model);
@@ -128,9 +147,15 @@ namespace OctopusRoleMapper.Tests
         [Test]
         public void It_should_throw_if_there_is_zero_roles_for_machine()
         {
-            _model = new RoleModel(new[]
+            _model = new SystemModel(new[]
             {
                 new Role("service", new List<string> {"dev1"})
+            }, new[]
+            {
+                new Tenant("a", new List<string> { "dev1"}),
+            }, new[]
+            {
+                new TenantTag("a", new List<string> { "dev1"})
             });
 
             var ex = Assert.Throws<InvalidOperationException>(() => _uploader.UploadModel(_model));

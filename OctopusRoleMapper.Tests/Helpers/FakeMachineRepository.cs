@@ -1,36 +1,41 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Octopus.Client.Editors;
 using Octopus.Client.Model;
+using Octopus.Client.Model.Endpoints;
 using Octopus.Client.Repositories;
 
 namespace OctopusRoleMapper.Tests.Helpers
 {
-    internal class FakeMachineRepository : FakeRepository<MachineResource>, IMachineRepository
+    internal class FakeMachineRepository : FakeNamedRepository<MachineResource>, IMachineRepository
     {
-        public MachineResource FindByName(string name)
-        {
-            return FindOne(t => t.Name == name);
-        }
-
-        public List<MachineResource> FindByNames(IEnumerable<string> names)
-        {
-            return FindMany(t => names.Contains(t.Name));
-        }
-
         public MachineResource Discover(string host, int port = 10933, DiscoverableEndpointType? discoverableEndpointType = null)
         {
-            throw new NotImplementedException();
+            throw new System.NotImplementedException();
         }
 
         public MachineConnectionStatus GetConnectionStatus(MachineResource machine)
         {
-            throw new NotImplementedException();
+            throw new System.NotImplementedException();
         }
 
         public List<MachineResource> FindByThumbprint(string thumbprint)
         {
-            throw new NotImplementedException();
+            throw new System.NotImplementedException();
         }
+
+        public MachineEditor CreateOrModify(string name, EndpointResource endpoint, EnvironmentResource[] environments, string[] roles,
+            TenantResource[] tenants, TagResource[] tenantTags)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public MachineEditor CreateOrModify(string name, EndpointResource endpoint, EnvironmentResource[] environments, string[] roles)
+        {
+            throw new System.NotImplementedException();
+        }
+
+
     }
 }

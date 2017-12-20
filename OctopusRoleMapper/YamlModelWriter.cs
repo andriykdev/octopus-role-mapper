@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using OctopusRoleMapper.YamlModel;
 using YamlDotNet.Serialization;
 
 namespace OctopusRoleMapper
@@ -7,12 +8,15 @@ namespace OctopusRoleMapper
     {
         private readonly Serializer _serializer = new Serializer();
 
-        public void Write(Stream stream, YamlRole model)
+        public void Write(Stream stream,params YamlSystemModel[] models)
         {
             using (var writer = new StreamWriter(stream))
             {
-                writer.WriteLine("---");
-                _serializer.Serialize(writer, model);
+                foreach (var model in models)
+                {
+                    writer.WriteLine("---");
+                    _serializer.Serialize(writer, model);
+                }
                 writer.WriteLine("...");
             }
         }

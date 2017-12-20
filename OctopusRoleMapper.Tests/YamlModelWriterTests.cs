@@ -3,6 +3,7 @@ using System.Linq;
 using System.Text;
 using NUnit.Framework;
 using OctopusRoleMapper.Tests.Helpers;
+using OctopusRoleMapper.YamlModel;
 using Ploeh.AutoFixture;
 
 namespace OctopusRoleMapper.Tests
@@ -21,7 +22,7 @@ namespace OctopusRoleMapper.Tests
         [Test]
         public void It_should_write_all_data()
         {
-            var expected = new Fixture().Create<YamlRole>();
+            var expected = new Fixture().Create<YamlSystemModel>();
             var content = Write(expected);
 
             var actual = new YamlModelReader().Read(new MemoryStream(Encoding.UTF8.GetBytes(content))).Single();
@@ -29,7 +30,7 @@ namespace OctopusRoleMapper.Tests
         }
 
 
-        private string Write(YamlRole model)
+        private string Write(YamlSystemModel model)
         {
             using (var stream = new MemoryStream())
             {
